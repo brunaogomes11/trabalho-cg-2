@@ -1,30 +1,57 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SecretPhotos</title>
     <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body>
+  </head>
+  <body>
     <header class="bg-blue-500 text-white p-4">
-        <h1 class="text-2xl font-bold">SecretPhotos</h1>
+      <h1 class="text-2xl font-bold">SecretPhotos</h1>
     </header>
     <main class="p-4">
-        <div class="mb-4">
-            <label for="imageInput" class="block text-gray-700 font-bold mb-2">Escolha uma imagem:</label>
-            <div class="relative">
-                <input type="file" id="imageInput" class="hidden" accept="image/*" onchange="updateFileName(this)">
-                <button type="button" class="bg-blue-500 text-white px-4 py-2 rounded" onclick="document.getElementById('imageInput').click()">Escolher arquivo</button>
-                <span id="fileName" class="ml-2 text-gray-700"></span>
-            </div>
-        </div>
-        <script>
-            function updateFileName(input) {
-                const fileName = input.files.length > 0 ? input.files[0].name : "Nenhum arquivo selecionado";
-                document.getElementById('fileName').textContent = fileName;
-            }
-        </script>
+      <div class="mb-4">
+        <form
+          method="POST"
+          enctype="multipart/form-data"
+          class="flex flex-col items-center gap-2"
+        >
+          <input
+            type="hidden"
+            name="imagem_existente"
+            id="imagem-existente"
+            value="{% if original %}{{ original }}{% endif %}"
+          />
+          <label
+            class="w-full bg-gray-200 rounded-lg py-2 mb-4 text-lg font-semibold flex items-center justify-center cursor-pointer"
+          >
+            <span id="file-label"
+              >{% if original %}{{ original.split('/')[-1] }}{% else %}Escolher
+              arquivo{% endif %}</span
+            >
+            <input
+              type="file"
+              name="imagem"
+              accept=".jpg, .jpeg, .png"
+              class="hidden"
+              id="file-input"
+            />
+          </label>
+        </form>
+      </div>
+      <script>
+        const fileInput = document.getElementById("file-input");
+        const fileLabel = document.getElementById("file-label");
+        fileInput.addEventListener("change", function () {
+          if (fileInput.files.length > 0) {
+            fileLabel.textContent = fileInput.files[0].name;
+            document.getElementById("imagem-existente").value = "";
+          } else {
+            fileLabel.textContent = "Escolher arquivo";
+          }
+        });
+      </script>
     </main>
-</body>
+  </body>
 </html>
