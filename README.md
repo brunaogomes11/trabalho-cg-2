@@ -63,9 +63,6 @@ O módulo `tools.py` é o coração da funcionalidade de esteganografia da plata
         6.  Se o delimitador for encontrado, todos os bits até o início do delimitador são considerados como a mensagem secreta. Essa porção da string binária é então convertida de volta para texto usando `bin_to_str`.
         7.  Se o delimitador não for encontrado, significa que a imagem pode não conter uma mensagem escondida com este método, ou que a mensagem está corrompida.
 
-### Por que LSB?
-
-A técnica LSB é popular para esteganografia porque modificar o bit menos significativo de um valor de cor de pixel causa uma alteração mínima na cor real, que é geralmente imperceptível ao olho humano. Isso permite que os dados sejam escondidos sem degradar visivelmente a qualidade da imagem.
 
 ## Estrutura do Projeto
 
@@ -84,7 +81,7 @@ A técnica LSB é popular para esteganografia porque modificar o bit menos signi
 2.  Clone o repositório (ou tenha os arquivos do projeto).
 3.  Instale as dependências:
     ```powershell
-    pip install Flask Pillow numpy
+    pip install -r requirements.txt
     ```
 4.  Execute a aplicação:
     ```powershell
