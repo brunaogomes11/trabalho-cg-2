@@ -6,52 +6,214 @@
     <title>SecretPhotos</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body>
-    <header class="bg-blue-500 text-white p-4">
-      <h1 class="text-2xl font-bold">SecretPhotos</h1>
+  <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <header class="bg-blue-600 text-white p-4 shadow-md">
+      <h1 class="text-3xl font-bold text-center">SecretPhotos</h1>
     </header>
-    <main class="p-4">
-      <div class="mb-4">
-        <form
-          method="POST"
-          enctype="multipart/form-data"
-          class="flex flex-col items-center gap-2"
-        >
-          <input
-            type="hidden"
-            name="imagem_existente"
-            id="imagem-existente"
-            value="{% if original %}{{ original }}{% endif %}"
-          />
-          <label
-            class="w-full bg-gray-200 rounded-lg py-2 mb-4 text-lg font-semibold flex items-center justify-center cursor-pointer"
-          >
-            <span id="file-label"
-              >{% if original %}{{ original.split('/')[-1] }}{% else %}Escolher
-              arquivo{% endif %}</span
-            >
-            <input
-              type="file"
-              name="imagem"
-              accept=".jpg, .jpeg, .png"
-              class="hidden"
-              id="file-input"
-            />
-          </label>
+    <main class="p-4 md:p-8">
+      
+      <div class="mb-6 border-b border-gray-300 dark:border-gray-700">
+        <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="myTab" role="tablist">
+          <li class="mr-2" role="presentation">
+            <button class="inline-block p-4 border-b-2 rounded-t-lg focus:outline-none" id="hide-text-tab" type="button" role="tab" aria-controls="hide-text-content" aria-selected="false">Esconder Texto</button>
+          </li>
+          <li role="presentation">
+            <button class="inline-block p-4 border-b-2 rounded-t-lg focus:outline-none" id="extract-text-tab" type="button" role="tab" aria-controls="extract-text-content" aria-selected="false">Extrair Texto</button>
+          </li>
+        </ul>
+      </div>
+
+      
+      <div id="myTabContent">
+        
+        <div class="hidden p-4 rounded-lg bg-white dark:bg-gray-800 shadow" id="hide-text-content" role="tabpanel" aria-labelledby="hide-text-tab">
+          <form method="POST" enctype="multipart/form-data" action="{{ url_for('index') }}" class="space-y-6">
+            <input type="hidden" name="action" value="hide_text">
+            <input type="hidden" name="imagem_existente" id="imagem-existente-hide" value="{% if active_tab == 'hide_text' and original_hide %}{{ original_hide }}{% endif %}" />
+            <div>
+              <label for="file-input-hide" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Escolher Imagem para Esconder Texto</label>
+              <label id="file-label-hide" for="file-input-hide" class="mt-2 flex justify-center items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer">
+                <span>Clique para carregar ou arraste</span>
+              </label>
+              <input class="hidden" id="file-input-hide" type="file" name="imagem" accept="image/png, image/jpeg, image/jpg">
+              {% if active_tab == 'hide_text' and hide_text_error %}
+                <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ hide_text_error }}</p>
+              {% endif %}
+            </div>
+            <div>
+              <label for="secret-text-input" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Texto Secreto</label>
+              <textarea name="secret_text" id="secret-text-input" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Digite seu texto secreto aqui..."></textarea>
+            </div>
+            <button type="submit" class="w-full text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-500 dark:hover:bg-green-600 dark:focus:ring-green-700">Esconder Texto</button>
+          </form>
+          {% if active_tab == 'hide_text' and steganography_result %}
+          <div class="mt-8 p-4 border rounded-lg shadow-inner bg-gray-50 dark:bg-gray-700">
+            <h2 class="text-xl font-semibold mb-2 text-center">Resultado:</h2>
+            <p class="text-center mb-4 {% if 'Erro' in steganography_result %}text-red-600 dark:text-red-500{% endif %}">{{ steganography_result }}</p>
+            {% if processed_image_hide_url and 'Erro' not in steganography_result %}
+            <div class="text-center">
+                <img src="{{ processed_image_hide_url }}" alt="Imagem com Texto Oculto" class="rounded-lg shadow-md mx-auto max-h-96 mb-4" />
+                {% if processed_hide_filename %}
+                <a href="{{ processed_image_hide_url }}" download="{{ processed_hide_filename }}" class="inline-block text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-700">
+                  Baixar Imagem Processada
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+
+        
+        <div class="hidden p-4 rounded-lg bg-white dark:bg-gray-800 shadow" id="extract-text-content" role="tabpanel" aria-labelledby="extract-text-tab">
+          <form method="POST" enctype="multipart/form-data" action="{{ url_for('index') }}" class="space-y-6">
+            <input type="hidden" name="action" value="extract_text">
+            <input type="hidden" name="imagem_existente" id="imagem-existente-extract" value="{% if active_tab == 'extract_text' and original_extract %}{{ original_extract }}{% endif %}" />
+            <div>
+              <label for="file-input-extract" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Escolher Imagem para Extrair Texto</label>
+              <label id="file-label-extract" for="file-input-extract" class="mt-2 flex justify-center items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer">
+                <span>Clique para carregar ou arraste</span>
+              </label>
+              <input class="hidden" id="file-input-extract" type="file" name="imagem" accept="image/png, image/jpeg, image/jpg">
+              {% if active_tab == 'extract_text' and extract_text_error %}
+                <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ extract_text_error }}</p>
+              {% endif %}
+            </div>
+            <button type="submit" class="w-full text-white bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:outline-none focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-purple-500 dark:hover:bg-purple-600 dark:focus:ring-purple-700">Extrair Texto</button>
+          </form>
+          {% if active_tab == 'extract_text' and extracted_text %}
+          <div class="mt-8 p-4 border rounded-lg shadow-inner bg-gray-50 dark:bg-gray-700">
+            <h2 class="text-xl font-semibold mb-2 text-center">Texto Extraído:</h2>
+            <p class="bg-white dark:bg-gray-600 p-3 border rounded-md shadow text-center {% if 'Erro' in extracted_text %}text-red-600 dark:text-red-500{% endif %}">{{ extracted_text }}</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="my-8 text-center">
+        <form method="POST" action="{{ url_for('index') }}" onsubmit="return confirm('Tem certeza que deseja limpar TODAS as imagens (enviadas e processadas)? Esta ação não pode ser desfeita.');">
+          <input type="hidden" name="action" value="clear_all_images">
+          <button type="submit" class="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-500 dark:hover:bg-red-600 dark:focus:ring-red-800">
+            Limpar Todas as Imagens
+          </button>
         </form>
       </div>
-      <script>
-        const fileInput = document.getElementById("file-input");
-        const fileLabel = document.getElementById("file-label");
-        fileInput.addEventListener("change", function () {
-          if (fileInput.files.length > 0) {
-            fileLabel.textContent = fileInput.files[0].name;
-            document.getElementById("imagem-existente").value = "";
-          } else {
-            fileLabel.textContent = "Escolher arquivo";
+
+      {% if imagens and imagens|length > 0 %}
+      <div class="mt-12">
+        <h2 class="text-2xl font-semibold mb-4 text-center">Imagens Anteriores (Uploads)</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {% for imagem_nome in imagens %}
+          <div class="border dark:border-gray-700 p-2 rounded-lg text-center shadow hover:shadow-lg transition-shadow bg-white dark:bg-gray-800">
+            <img src="{{ url_for('static', filename='uploads/' + imagem_nome) }}" alt="{{ imagem_nome }}" class="w-full h-32 object-cover rounded-md mb-2 cursor-pointer" onclick="selecionarImagem('{{ url_for('static', filename='uploads/' + imagem_nome) }}', '{{ imagem_nome }}')"/>
+            <p class="text-xs truncate" title="{{ imagem_nome }}">{{ imagem_nome }}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="mt-12 text-center">
+          <p class="text-gray-500 dark:text-gray-400">Nenhuma imagem enviada ainda. Faça o upload de uma imagem para começar.</p>
+      </div>
+      {% endif %}
+    </main>
+
+    <script>
+      
+      const tabs = [
+          { id: 'hide-text', triggerEl: document.getElementById('hide-text-tab'), targetEl: document.getElementById('hide-text-content'), fileInputId: 'file-input-hide', fileLabelId: 'file-label-hide', existingImageId: 'imagem-existente-hide', defaultFileLabel: 'Clique para carregar ou arraste' },
+          { id: 'extract-text', triggerEl: document.getElementById('extract-text-tab'), targetEl: document.getElementById('extract-text-content'), fileInputId: 'file-input-extract', fileLabelId: 'file-label-extract', existingImageId: 'imagem-existente-extract', defaultFileLabel: 'Clique para carregar ou arraste' }
+      ];
+
+      document.addEventListener('DOMContentLoaded', function () {
+        const activeClasses = 'text-blue-600 border-blue-600 dark:text-blue-500 dark:border-blue-500';
+        const inactiveClasses = 'border-transparent hover:text-gray-600 hover:border-gray-300 dark:text-gray-300 dark:border-gray-700 text-gray-500 dark:text-gray-400';
+
+        function showTab(tabIdToShow) {
+          tabs.forEach(tab => {
+            const isSelected = tab.id === tabIdToShow;
+            tab.targetEl.classList.toggle('hidden', !isSelected);
+            tab.triggerEl.setAttribute('aria-selected', isSelected.toString());
+            if (isSelected) {
+              tab.triggerEl.classList.add(...activeClasses.split(' '));
+              tab.triggerEl.classList.remove(...inactiveClasses.split(' '));
+              localStorage.setItem('activeTab', tabIdToShow);
+            } else {
+              tab.triggerEl.classList.remove(...activeClasses.split(' '));
+              tab.triggerEl.classList.add(...inactiveClasses.split(' '));
+            }
+          });
+        }
+
+        tabs.forEach(tab => {
+          tab.triggerEl.addEventListener('click', function () { showTab(tab.id); });
+
+          const fileInput = document.getElementById(tab.fileInputId);
+          const fileLabel = document.getElementById(tab.fileLabelId);
+          const existingImageInput = document.getElementById(tab.existingImageId);
+
+          if (fileInput && fileLabel) {
+            fileInput.addEventListener('change', function () {
+              if (this.files && this.files[0]) {
+                fileLabel.textContent = this.files[0].name;
+                if (existingImageInput) {
+                    existingImageInput.value = ''; 
+                }
+              } else {
+                
+                if (existingImageInput && existingImageInput.value) {
+                    
+                    const urlParts = existingImageInput.value.split('/');
+                    fileLabel.textContent = decodeURIComponent(urlParts[urlParts.length -1]);
+                } else {
+                    fileLabel.textContent = tab.defaultFileLabel;
+                }
+              }
+            });
           }
         });
-      </script>
-    </main>
+        
+        let initialTabId = '{{ active_tab | default("hide-text", true) }}';
+        const validTabIds = tabs.map(t => t.id);
+
+        if (!validTabIds.includes(initialTabId)) {
+            initialTabId = localStorage.getItem('activeTab');
+            if (!initialTabId || !validTabIds.includes(initialTabId)) {
+                initialTabId = 'hide_text'; 
+            }
+        }
+        showTab(initialTabId);
+
+        
+        tabs.forEach(tab => {
+            const existingImageInput = document.getElementById(tab.existingImageId);
+            const fileLabel = document.getElementById(tab.fileLabelId);
+            if (existingImageInput && existingImageInput.value && fileLabel) {
+                 
+                 if (localStorage.getItem('activeTab') === tab.id || '{{ active_tab }}' === tab.id){
+                    const urlParts = existingImageInput.value.split('/');
+                    fileLabel.textContent = decodeURIComponent(urlParts[urlParts.length -1]);
+                 }
+            }
+        });
+      });
+
+      function selecionarImagem(imageUrl, imageName) {
+        const activeTabId = localStorage.getItem('activeTab') || 'hide-text'; 
+        const currentTab = tabs.find(t => t.id === activeTabId);
+
+        if (currentTab) {
+          const fileInput = document.getElementById(currentTab.fileInputId);
+          const fileLabel = document.getElementById(currentTab.fileLabelId);
+          const existingImageInput = document.getElementById(currentTab.existingImageId);
+
+          if (fileLabel) fileLabel.textContent = imageName;
+          if (existingImageInput) existingImageInput.value = imageUrl; 
+          if (fileInput) fileInput.value = ''; 
+          
+          showTab(activeTabId); 
+        }
+      }
+    </script>
   </body>
 </html>
